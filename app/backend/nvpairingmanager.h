@@ -19,6 +19,11 @@ public:
 
     explicit NvPairingManager(NvComputer* computer);
 
+    // WARP: nome com que o aparelho se apresenta no pareamento. A WARP procura
+    // o pedido pendente no Sunshine por este nome ("warp-<sessão>").
+    static void definirNomeDoAparelho(const QString& nome) { s_NomeDoAparelho = QUrl::toPercentEncoding(nome); }
+    static QByteArray s_NomeDoAparelho;
+
     ~NvPairingManager();
 
     PairState

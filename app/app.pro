@@ -166,6 +166,8 @@ macx {
 }
 
 SOURCES += \
+    warp/warpapi.cpp \
+    warp/warpsessao.cpp \
     backend/nvaddress.cpp \
     backend/nvapp.cpp \
     cli/pair.cpp \
@@ -207,6 +209,8 @@ SOURCES += \
     wm.cpp
 
 HEADERS += \
+    warp/warpapi.h \
+    warp/warpsessao.h \
     SDL_compat.h \
     backend/nvaddress.h \
     backend/nvapp.h \
@@ -546,9 +550,9 @@ unix:!macx: {
 }
 win32 {
     RC_ICONS = moonlight.ico
-    QMAKE_TARGET_COMPANY = Moonlight Game Streaming Project
-    QMAKE_TARGET_DESCRIPTION = Moonlight Game Streaming Client
-    QMAKE_TARGET_PRODUCT = Moonlight
+    QMAKE_TARGET_COMPANY = WARP SERVER
+    QMAKE_TARGET_DESCRIPTION = WARP Cloud Game
+    QMAKE_TARGET_PRODUCT = WARP Cloud Game
 
     CONFIG -= embed_manifest_exe
     QMAKE_LFLAGS += /MANIFEST:embed /MANIFESTINPUT:$${PWD}/Moonlight.exe.manifest

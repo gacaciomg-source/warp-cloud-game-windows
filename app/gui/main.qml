@@ -11,6 +11,8 @@ import SystemProperties 1.0
 import SdlGamepadKeyNavigation 1.0
 
 ApplicationWindow {
+    title: "WARP Cloud Game"
+    color: "#07131F"
     property bool pollingActive: false
 
     // Set by SettingsView to force the back operation to pop all
@@ -243,6 +245,7 @@ ApplicationWindow {
 
     header: ToolBar {
         id: toolBar
+        visible: !(stackView.currentItem && stackView.currentItem.warp === true)
         height: 60
         anchors.topMargin: 5
         anchors.bottomMargin: 5

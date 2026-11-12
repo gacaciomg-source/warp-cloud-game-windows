@@ -54,6 +54,8 @@
 #include "streaming/session.h"
 #include "settings/streamingpreferences.h"
 #include "gui/sdlgamepadkeynavigation.h"
+#include "warp/warpapi.h"
+#include "warp/warpsessao.h"
 
 #if defined(Q_OS_WIN32)
 #define IS_UNSPECIFIED_HANDLE(x) ((x) == INVALID_HANDLE_VALUE || (x) == NULL)
@@ -428,9 +430,9 @@ int main(int argc, char *argv[])
     // Set these here to allow us to use the default QSettings constructor.
     // These also ensure that our cache directory is named correctly. As such,
     // it is critical that these be called before Path::initialize().
-    QCoreApplication::setOrganizationName("Moonlight Game Streaming Project");
-    QCoreApplication::setOrganizationDomain("moonlight-stream.com");
-    QCoreApplication::setApplicationName("Moonlight");
+    QCoreApplication::setOrganizationName("WARP SERVER");
+    QCoreApplication::setOrganizationDomain("warpserver.com.br");
+    QCoreApplication::setApplicationName("WARP Cloud Game");
 
     if (QFile(QDir::currentPath() + "/portable.dat").exists()) {
         QSettings::setDefaultFormat(QSettings::IniFormat);
@@ -931,7 +933,7 @@ int main(int argc, char *argv[])
 #ifndef Q_OS_DARWIN
     // Set the window icon except on macOS where we want to keep the
     // modified macOS 11 style rounded corner icon.
-    app.setWindowIcon(QIcon(":/res/moonlight.svg"));
+    app.setWindowIcon(QIcon(":/res/warp.svg"));
 #endif
 
     // This is necessary to show our icon correctly on Wayland
@@ -943,6 +945,13 @@ int main(int argc, char *argv[])
     qmlRegisterType<ComputerModel>("ComputerModel", 1, 0, "ComputerModel");
     qmlRegisterType<AppModel>("AppModel", 1, 0, "AppModel");
     qmlRegisterUncreatableType<Session>("Session", 1, 0, "Session", "Session cannot be created from QML");
+    // WARP: conta, catálogo e sessões do Cloud Game.
+    qmlRegisterSingletonType<WarpApi>("WarpApi", 1, 0, "WarpApi",
+                                      [](QQmlEngine*, QJSEngine*) -> QObject* {
+                                          QQmlEngine::setObjectOwnership(WarpApi::get(), QQmlEngine::CppOwnership);
+                                          return WarpApi::get();
+                                      });
+    qmlRegisterType<WarpSessao>("WarpSessao", 1, 0, "WarpSessao");
     qmlRegisterSingletonType<ComputerManager>("ComputerManager", 1, 0,
                                               "ComputerManager",
                                               [](QQmlEngine* qmlEngine, QJSEngine*) -> QObject* {
@@ -998,7 +1007,8 @@ int main(int argc, char *argv[])
 
     switch (commandLineParserResult) {
     case GlobalCommandLineParser::NormalStartRequested:
-        initialView = "qrc:/gui/PcView.qml";
+        // WARP: o app abre na conta e no catálogo da WARP.
+        initialView = "qrc:/gui/warp/WarpInicio.qml";
         break;
     case GlobalCommandLineParser::StreamRequested:
         {
