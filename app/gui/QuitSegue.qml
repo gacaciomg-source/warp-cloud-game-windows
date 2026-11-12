@@ -5,12 +5,14 @@ import ComputerManager 1.0
 import Session 1.0
 
 Item {
+    // WARP: sem a barra do Moonlight.
+    property bool warp: true
     property string appName
     property var quitRunningAppFn
     property Session nextSession : null
     property string nextAppName : ""
 
-    property string stageText : qsTr("Quitting %1...").arg(appName)
+    property string stageText : qsTr("Encerrando %1…").arg(appName)
 
     function quitAppCompleted(error)
     {
@@ -34,8 +36,6 @@ Item {
     }
 
     StackView.onActivated: {
-        // Hide the toolbar before we start loading
-        toolBar.visible = false
 
         // Connect the quit completion signal
         ComputerManager.quitAppCompleted.connect(quitAppCompleted)
@@ -47,8 +47,6 @@ Item {
     }
 
     StackView.onDeactivating: {
-        // Show the toolbar again
-        toolBar.visible = true
 
         // Disconnect the signal
         ComputerManager.quitAppCompleted.disconnect(quitAppCompleted)

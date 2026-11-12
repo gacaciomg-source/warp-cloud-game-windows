@@ -374,14 +374,14 @@ ApplicationWindow {
 
                 function updateAvailable(version, url)
                 {
-                    ToolTip.text = qsTr("Update available for Moonlight: Version %1").arg(version)
+                    ToolTip.text = qsTr("Nova versão disponível: %1").arg(version)
                     updateButton.browserUrl = url
                     updateButton.visible = true
                 }
 
                 Component.onCompleted: {
                     AutoUpdateChecker.onUpdateAvailable.connect(updateAvailable)
-                    AutoUpdateChecker.start()
+                    // WARP: sem procurar versões do Moonlight.
                 }
 
                 Keys.onDownPressed: {
@@ -459,10 +459,8 @@ ApplicationWindow {
 
     ErrorMessageDialog {
         id: noHwDecoderDialog
-        text: qsTr("No functioning hardware accelerated video decoder was detected by Moonlight. " +
-                   "Your streaming performance may be severely degraded in this configuration.")
-        helpText: qsTr("Click the Help button for more information on solving this problem.")
-        helpUrl: "https://github.com/moonlight-stream/moonlight-docs/wiki/Fixing-Hardware-Decoding-Problems"
+        text: qsTr("A placa de vídeo deste computador não conseguiu decodificar a imagem do jogo. " +
+                   "A transmissão pode ficar lenta. Atualize o driver de vídeo e tente de novo.")
     }
 
     ErrorMessageDialog {
@@ -476,26 +474,23 @@ ApplicationWindow {
     NavigableMessageDialog {
         id: wow64Dialog
         standardButtons: Dialog.Ok | Dialog.Cancel
-        text: qsTr("This version of Moonlight isn't optimized for your PC. Please download the '%1' version of Moonlight for the best streaming performance.").arg(SystemProperties.friendlyNativeArchName)
+        text: qsTr("Esta versão do WARP Cloud Game não é a ideal para este computador (%1). Baixe a versão certa no site da WARP.").arg(SystemProperties.friendlyNativeArchName)
         onAccepted: {
-            Qt.openUrlExternally("https://github.com/moonlight-stream/moonlight-qt/releases");
+            Qt.openUrlExternally("https://warpserver.com.br/cloud-game");
         }
     }
 
     ErrorMessageDialog {
         id: unmappedGamepadDialog
         property string unmappedGamepads : ""
-        text: qsTr("Moonlight detected gamepads without a mapping:") + "\n" + unmappedGamepads
-        helpTextSeparator: "\n\n"
-        helpText: qsTr("Click the Help button for information on how to map your gamepads.")
-        helpUrl: "https://github.com/moonlight-stream/moonlight-docs/wiki/Gamepad-Mapping"
+        text: qsTr("Este controle não foi reconhecido e pode não funcionar:") + "\n" + unmappedGamepads
     }
 
     // This dialog appears when quitting via keyboard or gamepad button
     NavigableMessageDialog {
         id: quitConfirmationDialog
         standardButtons: Dialog.Yes | Dialog.No
-        text: qsTr("Are you sure you want to quit?")
+        text: qsTr("Quer mesmo sair do WARP Cloud Game?")
         // For keyboard/gamepad navigation
         onAccepted: Qt.quit()
     }

@@ -225,17 +225,26 @@ void WarpSessao::parear(int tentativa)
 
 /* ------------------------------------------------------------ jogo */
 
-// Qualidade automática: 60% da velocidade medida até a WARP, entre 4 e 40
+// Fluidez: o ritmo de quadros (frame pacing) segura um quadro para entregar
+// a imagem em intervalos iguais — some o engasgo pequeno que a internet
+// causa, ao custo de ~1 quadro de atraso. Padrão da WARP: ligado.
+//
+// Qualidade automática: 70% da velocidade medida até a WARP, entre 4 e 40
 // Mbps, respeitando o teto da máquina. 1080p a partir de 12 Mbps.
 static void aplicarQualidade(StreamingPreferences* p, int tetoKbps)
 {
     QSettings s;
+    p->framePacing = s.value("warp/fluido", true).toBool();
+    p->enableVsync = true;
+    // Tela cheia sem borda: o monitor não troca de resolução ao entrar e sair
+    // do jogo (sem piscar preto) e o Windows compõe a imagem sem rasgar.
+    p->windowMode = StreamingPreferences::WM_FULLSCREEN_DESKTOP;
     if (s.value("warp/qualidade", "auto").toString() != "auto") return;
     double mbps = s.value("warp/rede/mbps", 0).toDouble();
     int ping = s.value("warp/rede/ping", 0).toInt();
-    int kbps = mbps > 0 ? int(mbps * 600) : 15000;
+    int kbps = mbps > 0 ? int(mbps * 700) : 15000;
     kbps = std::max(4000, std::min(40000, kbps));
-    if (ping >= 80) kbps = std::min(kbps, 12000);
+    if (ping >= 80) kbps = std::min(kbps, 20000);
     if (tetoKbps > 0) kbps = std::min(kbps, tetoKbps);
     kbps = (kbps / 500) * 500;
     p->bitrateKbps = kbps;

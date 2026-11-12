@@ -16,6 +16,7 @@ Item {
     property int ping: WarpApi.valor("rede/ping", 0)
     property real mbps: WarpApi.valor("rede/mbps", 0)
     property bool testando: false
+    property bool fluido: WarpApi.valor("fluido", true) === true || WarpApi.valor("fluido", true) === "true"
 
     readonly property var perfis: [
         { id: "auto", nome: qsTr("Automática"), resumo: qsTr("A WARP testa a sua conexão e escolhe por você."), altura: 0, kbps: 0 },
@@ -39,8 +40,8 @@ Item {
 
     function recomendado() {
         if (tela.mbps <= 0) return qsTr("teste a conexão")
-        var kbps = Math.max(4000, Math.min(40000, Math.round(tela.mbps * 600)))
-        if (tela.ping >= 80) kbps = Math.min(kbps, 12000)
+        var kbps = Math.max(4000, Math.min(40000, Math.round(tela.mbps * 700)))
+        if (tela.ping >= 80) kbps = Math.min(kbps, 20000)
         return (kbps >= 12000 ? "1080p" : "720p") + " · " + Math.round(kbps / 1000) + " Mbps"
     }
 
@@ -116,6 +117,40 @@ Item {
                         color: "#00C48E"; font.pixelSize: 22; font.bold: true
                     }
                     MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { parent.forceActiveFocus(); tela.escolher(modelData) } }
+                }
+            }
+
+            Text {
+                Layout.topMargin: 26
+                text: qsTr("FLUIDEZ")
+                color: "#00C48E"; font.pixelSize: 12; font.bold: true; font.letterSpacing: 2
+            }
+            Repeater {
+                model: [
+                    { fluido: true, nome: qsTr("Mais fluido (recomendado)"), resumo: qsTr("Entrega os quadros em ritmo constante: some o engasgo da internet.") },
+                    { fluido: false, nome: qsTr("Menor atraso"), resumo: qsTr("Responde um quadro mais rápido, mas pode engasgar quando a internet oscila.") }
+                ]
+                delegate: Rectangle {
+                    Layout.fillWidth: true
+                    height: 64
+                    radius: 14
+                    color: tela.fluido === modelData.fluido ? "#1F00C48E" : "#B30F2336"
+                    border.width: activeFocus ? 3 : (tela.fluido === modelData.fluido ? 2 : 1)
+                    border.color: activeFocus ? "#FFFFFF" : (tela.fluido === modelData.fluido ? "#00C48E" : "#331E3A53")
+                    activeFocusOnTab: true
+                    function escolher() { tela.fluido = modelData.fluido; WarpApi.definir("fluido", modelData.fluido) }
+                    Keys.onReturnPressed: escolher()
+                    Keys.onEnterPressed: escolher()
+                    Keys.onSpacePressed: escolher()
+                    Column {
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.left: parent.left
+                        anchors.leftMargin: 18
+                        spacing: 3
+                        Text { text: modelData.nome; color: "#EAF3F8"; font.pixelSize: 15; font.bold: true }
+                        Text { text: modelData.resumo; color: "#ADC4D6"; font.pixelSize: 13 }
+                    }
+                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { parent.forceActiveFocus(); parent.escolher() } }
                 }
             }
 

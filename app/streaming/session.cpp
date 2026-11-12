@@ -101,26 +101,26 @@ void Session::clConnectionTerminated(int errorCode)
         char ports[128];
         SDL_assert(portFlags != 0);
         LiStringifyPortFlags(portFlags, ", ", ports, sizeof(ports));
-        emit s_ActiveSession->displayLaunchError(tr("No video received from host.") + "\n\n"+
-                                                 tr("Check your firewall and port forwarding rules for port(s): %1").arg(ports));
+        emit s_ActiveSession->displayLaunchError(tr("A imagem da máquina não chegou até este computador.") + "\n\n"+
+                                                 tr("A rede deste computador pode estar bloqueando a transmissão (portas %1). Tente outra rede ou desligue a VPN.").arg(ports));
         break;
 
     case ML_ERROR_NO_VIDEO_FRAME:
         s_ActiveSession->m_UnexpectedTermination = true;
-        emit s_ActiveSession->displayLaunchError(tr("Your network connection isn't performing well. Reduce your video bitrate setting or try a faster connection."));
+        emit s_ActiveSession->displayLaunchError(tr("A sua conexão está fraca para esta qualidade. Escolha uma qualidade menor em Configurações ou use uma internet mais rápida (de preferência no cabo)."));
         break;
 
     case ML_ERROR_PROTECTED_CONTENT:
     case ML_ERROR_UNEXPECTED_EARLY_TERMINATION:
         s_ActiveSession->m_UnexpectedTermination = true;
-        emit s_ActiveSession->displayLaunchError(tr("Something went wrong on your host PC when starting the stream.") + "\n\n" +
-                                                 tr("Make sure you don't have any DRM-protected content open on your host PC. You can also try restarting your host PC."));
+        emit s_ActiveSession->displayLaunchError(tr("A máquina não conseguiu começar a transmissão.") + "\n\n" +
+                                                 tr("Tente de novo em instantes. Se continuar, fale com o suporte da WARP."));
         break;
 
     case ML_ERROR_FRAME_CONVERSION:
         s_ActiveSession->m_UnexpectedTermination = true;
-        emit s_ActiveSession->displayLaunchError(tr("The host PC reported a fatal video encoding error.") + "\n\n" +
-                                                 tr("Try disabling HDR mode, changing the streaming resolution, or changing your host PC's display resolution."));
+        emit s_ActiveSession->displayLaunchError(tr("A máquina teve um erro ao gerar a imagem do jogo.") + "\n\n" +
+                                                 tr("Tente outra qualidade em Configurações. Se continuar, fale com o suporte da WARP."));
         break;
 
     default:
@@ -128,8 +128,8 @@ void Session::clConnectionTerminated(int errorCode)
 
         // We'll assume large errors are hex values
         bool hexError = qAbs(errorCode) > 1000;
-        emit s_ActiveSession->displayLaunchError(tr("Connection terminated") + "\n\n" +
-                                                 tr("Error code: %1").arg(errorCode, hexError ? 8 : 0, hexError ? 16 : 10, QChar('0')));
+        emit s_ActiveSession->displayLaunchError(tr("A conexão com a máquina caiu.") + "\n\n" +
+                                                 tr("Código: %1").arg(errorCode, hexError ? 8 : 0, hexError ? 16 : 10, QChar('0')));
         break;
     }
 
@@ -189,7 +189,7 @@ void Session::clConnectionStatusUpdate(int connectionStatus)
     case CONN_STATUS_POOR:
         s_ActiveSession->m_OverlayManager.updateOverlayText(Overlay::OverlayStatusUpdate,
                                                             s_ActiveSession->m_StreamConfig.bitrate > 5000 ?
-                                                                "Slow connection to PC\nReduce your bitrate" : "Poor connection to PC");
+                                                                "Conexão lenta\nEscolha uma qualidade menor" : "Conexão instável");
         s_ActiveSession->m_OverlayManager.setOverlayState(Overlay::OverlayStatusUpdate, true);
         break;
     case CONN_STATUS_OKAY:
@@ -1195,12 +1195,12 @@ bool Session::validateLaunch(SDL_Window* testWindow)
 
     // If nothing worked, warn the user that audio will not work
     if (!audioTestPassed) {
-        emitLaunchWarning(tr("Failed to open audio device. Audio will be unavailable during this session."));
+        emitLaunchWarning(tr("Não foi possível abrir a saída de som deste computador. O jogo vai ficar sem som."));
     }
 
     // Check for unmapped gamepads
     if (!SdlInputHandler::getUnmappedGamepads().isEmpty()) {
-        emitLaunchWarning(tr("An attached gamepad has no mapping and won't be usable. Visit the Moonlight help to resolve this."));
+        emitLaunchWarning(tr("Um controle conectado não foi reconhecido e pode não funcionar."));
     }
 
     // If we removed all codecs with the checks above, use H.264 as the codec of last resort.
@@ -1633,7 +1633,7 @@ bool Session::startConnectionAsync()
                       !m_Preferences->multiController,
                       rtspSessionUrl);
     } catch (const GfeHttpResponseException& e) {
-        emit displayLaunchError(tr("Host returned error: %1").arg(e.toQString()));
+        emit displayLaunchError(tr("A máquina recusou a conexão: %1").arg(e.toQString()));
         return false;
     } catch (const QtNetworkReplyException& e) {
         emit displayLaunchError(e.toQString());
@@ -1856,7 +1856,7 @@ void Session::exec()
 #ifdef Q_OS_DARWIN
     std::string windowName = QString(m_Computer->name).toStdString();
 #else
-    std::string windowName = QString(m_Computer->name + " - Moonlight").toStdString();
+    std::string windowName = QString(m_App.name + " - WARP Cloud Game").toStdString();
 #endif
 
     m_Window = SDL_CreateWindow(windowName.c_str(),
@@ -2232,7 +2232,7 @@ void Session::exec()
                     SDL_UnlockMutex(m_DecoderLock);
                     SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
                                  "Failed to recreate decoder after reset");
-                    emit displayLaunchError(tr("Unable to initialize video decoder. Please check your streaming settings and try again."));
+                    emit displayLaunchError(tr("Não foi possível preparar a imagem do jogo. Tente outra qualidade em Configurações."));
                     goto DispatchDeferredCleanup;
                 }
 

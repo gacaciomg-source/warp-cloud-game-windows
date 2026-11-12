@@ -1,5 +1,5 @@
-import QtQuick 2.0
-import QtQuick.Controls 2.2
+import QtQuick 2.15
+import QtQuick.Controls 2.15
 import QtQuick.Window 2.2
 
 import SdlGamepadKeyNavigation 1.0
@@ -7,26 +7,34 @@ import Session 1.0
 import SystemProperties 1.0
 
 Item {
+    // WARP: tela própria (sem a barra do Moonlight), textos em português.
+    property bool warp: true
     property Session session
     property string appName
-    property string stageText : isResume ? qsTr("Resuming %1...").arg(appName) :
-                                           qsTr("Starting %1...").arg(appName)
+    property string stageText : isResume ? qsTr("Voltando a %1…").arg(appName) :
+                                           qsTr("Abrindo %1…").arg(appName)
     property bool isResume : false
     property bool quitAfter : false
 
     function stageStarting(stage)
     {
-        // Update the spinner text
-        stageText = qsTr("Starting %1...").arg(stage)
+        // Etapa da conexão, em português.
+        var s = String(stage).toLowerCase()
+        stageText = s.indexOf("rtsp") >= 0 ? qsTr("Combinando a transmissão…")
+                  : s.indexOf("control") >= 0 ? qsTr("Abrindo o canal de controle…")
+                  : s.indexOf("video") >= 0 ? qsTr("Ligando a imagem…")
+                  : s.indexOf("audio") >= 0 ? qsTr("Ligando o som…")
+                  : s.indexOf("input") >= 0 ? qsTr("Conectando os controles…")
+                  : qsTr("Conectando…")
     }
 
     function stageFailed(stage, errorCode, failingPorts)
     {
         // Display the error dialog after Session::exec() returns
-        streamSegueErrorDialog.text = qsTr("Starting %1 failed: Error %2").arg(stage).arg(errorCode)
+        streamSegueErrorDialog.text = qsTr("Não foi possível começar a transmissão (etapa %1, código %2). Tente de novo em instantes.").arg(stage).arg(errorCode)
 
         if (failingPorts) {
-            streamSegueErrorDialog.text += "\n\n" + qsTr("Check your firewall and port forwarding rules for port(s): %1").arg(failingPorts)
+            streamSegueErrorDialog.text += "\n\n" + qsTr("A rede deste computador bloqueou a conexão com a máquina. Tente outra rede.")
         }
     }
 
@@ -62,7 +70,7 @@ Item {
     function sessionFinished(portTestResult)
     {
         if (portTestResult !== 0 && portTestResult !== -1 && streamSegueErrorDialog.text) {
-            streamSegueErrorDialog.text += "\n\n" + qsTr("This PC's Internet connection is blocking Moonlight. Streaming over the Internet may not work while connected to this network.")
+            streamSegueErrorDialog.text += "\n\n" + qsTr("A rede deste computador está bloqueando a conexão com a máquina. Tente outra rede.")
         }
 
         // Re-enable GUI gamepad usage now
@@ -101,16 +109,13 @@ Item {
     }
 
     StackView.onDeactivating: {
-        // Show the toolbar again when popped off the stack
-        toolBar.visible = true
+        // WARP: a barra de cima fica escondida (a página da WARP decide).
 
         // Re-enable GUI gamepad usage now
         SdlGamepadKeyNavigation.enable()
     }
 
     StackView.onActivated: {
-        // Hide the toolbar before we start loading
-        toolBar.visible = false
 
         // Hook up our signals
         session.stageStarting.connect(stageStarting)
@@ -152,8 +157,8 @@ Item {
             // in the hintText control itself to synchronize
             // with Session.exec() which requires no concurrent
             // gamepad usage.
-            hintText.text = qsTr("Tip:") + " " + qsTr("Press %1 to disconnect your session").arg(SdlGamepadKeyNavigation.getConnectedGamepads() > 0 ?
-                                                  qsTr("Start+Select+L1+R1") : qsTr("Ctrl+Alt+Shift+Q"))
+            hintText.text = qsTr("Para sair do jogo: %1   ·   Estatísticas: Ctrl + Alt + Shift + S").arg(SdlGamepadKeyNavigation.getConnectedGamepads() > 0 ?
+                                                  qsTr("Start + Select + LB + RB") : qsTr("Ctrl + Alt + Shift + Q"))
 
             // Stop GUI gamepad usage now
             SdlGamepadKeyNavigation.disable()
@@ -200,35 +205,49 @@ Item {
         sourceComponent: Item {}
     }
 
-    Row {
-        anchors.centerIn: parent
-        spacing: 5
-
-        BusyIndicator {
-            id: stageSpinner
-            running: visible
-            visible: false
-        }
-
-        Label {
-            id: stageLabel
-            height: stageSpinner.height
-            text: stageText
-            font.pointSize: 20
-            verticalAlignment: Text.AlignVCenter
-
-            wrapMode: Text.Wrap
+    Rectangle {
+        anchors.fill: parent
+        gradient: Gradient {
+            GradientStop { position: 0.0; color: "#0A1A29" }
+            GradientStop { position: 1.0; color: "#07131F" }
         }
     }
 
-    Label {
+    Column {
+        anchors.centerIn: parent
+        spacing: 16
+
+        Text {
+            anchors.horizontalCenter: parent.horizontalCenter
+            text: "WARP"
+            color: "#00C48E"; font.pixelSize: 28; font.bold: true; font.letterSpacing: 5
+        }
+        Text {
+            anchors.horizontalCenter: parent.horizontalCenter
+            text: appName
+            color: "#EAF3F8"; font.pixelSize: 34; font.bold: true
+        }
+        BusyIndicator {
+            id: stageSpinner
+            anchors.horizontalCenter: parent.horizontalCenter
+            running: visible
+            visible: false
+        }
+        Text {
+            id: stageLabel
+            anchors.horizontalCenter: parent.horizontalCenter
+            text: stageText
+            color: "#ADC4D6"; font.pixelSize: 17
+        }
+    }
+
+    Text {
         id: hintText
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 50
         anchors.horizontalCenter: parent.horizontalCenter
-        font.pointSize: 18
-        verticalAlignment: Text.AlignVCenter
-
+        color: "#6F8BA3"
+        font.pixelSize: 15
         wrapMode: Text.Wrap
     }
 }

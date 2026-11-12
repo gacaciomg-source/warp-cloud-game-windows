@@ -65,6 +65,11 @@ jobs:
           path: saida/*.msi
           if-no-files-found: error
 
+      # O instalador já grava "WARP Cloud Game.exe"; a pasta portátil também.
+      - name: Nome do programa (portátil)
+        shell: bash
+        run: mv build/deploy-x64-release/Moonlight.exe "build/deploy-x64-release/WARP Cloud Game.exe"
+
       - name: Envia a versão portátil
         uses: actions/upload-artifact@v6
         with:

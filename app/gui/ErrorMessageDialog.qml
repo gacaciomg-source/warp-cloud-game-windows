@@ -4,5 +4,5 @@ import QtQuick.Controls 2.2
 import SystemProperties 1.0
 
 NavigableMessageDialog {
-    standardButtons: Dialog.Ok | (SystemProperties.hasBrowser ? Dialog.Help : 0)
+    standardButtons: Dialog.Ok | (SystemProperties.hasBrowser && helpUrl !== "" ? Dialog.Help : 0)
 }

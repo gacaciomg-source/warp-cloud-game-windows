@@ -84,7 +84,7 @@
 
     <DirectoryRef Id="INSTALLFOLDER">
       <Component Id="Moonlight">
-        <File Id="MoonlightExe"
+        <File Id="MoonlightExe" Name="WARP Cloud Game.exe"
               KeyPath="yes"
               Checksum="yes"
               Source="$(var.BuildDir)\app\$(var.Configuration)\Moonlight.exe">
