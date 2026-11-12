@@ -134,6 +134,9 @@ public:
 
     void raiseAllKeys();
 
+    // WARP: solta botões, gatilhos e analógicos de todos os controles no jogo.
+    void zerarControles();
+
     void notifyMouseLeave();
 
     void notifyFocusLost();

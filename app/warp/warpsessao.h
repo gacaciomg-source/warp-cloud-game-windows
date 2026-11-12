@@ -31,6 +31,8 @@ public:
     Q_INVOKABLE void reabrir();
     // Fim com o tempo de salvar.
     Q_INVOKABLE void encerrar();
+    // O que o menu da partida pediu ao fechar a transmissão: "", "reconectar" ou "encerrar".
+    Q_INVOKABLE QString pedidoDoMenu();
 
 signals:
     // passo: 0 fila, 1 máquina, 2 acesso, 3 jogo.

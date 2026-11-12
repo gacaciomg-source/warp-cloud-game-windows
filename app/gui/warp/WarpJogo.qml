@@ -132,6 +132,11 @@ Item {
             }
             Text {
                 Layout.fillWidth: true
+                text: qsTr("Durante o jogo, Ctrl + Shift + M (ou Start + Select + LB + RB no controle) abre o menu da partida: qualidade da imagem, estatísticas, pausar e encerrar.")
+                color: "#6F8BA3"; font.pixelSize: 14; wrapMode: Text.WordWrap
+            }
+            Text {
+                Layout.fillWidth: true
                 Layout.topMargin: 14
                 text: qsTr("Seu progresso fica salvo na sua conta. Quando você sai, a WARP fecha o jogo do jeito certo e espera a nuvem da loja terminar de enviar o save antes de liberar a máquina.")
                 color: "#6F8BA3"; font.pixelSize: 14; wrapMode: Text.WordWrap

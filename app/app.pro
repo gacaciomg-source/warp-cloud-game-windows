@@ -167,6 +167,7 @@ macx {
 
 SOURCES += \
     warp/warpapi.cpp \
+    warp/warpmenujogo.cpp \
     warp/warpsessao.cpp \
     backend/nvaddress.cpp \
     backend/nvapp.cpp \
@@ -210,6 +211,7 @@ SOURCES += \
 
 HEADERS += \
     warp/warpapi.h \
+    warp/warpmenujogo.h \
     warp/warpsessao.h \
     SDL_compat.h \
     backend/nvaddress.h \
@@ -553,6 +555,9 @@ win32 {
     QMAKE_TARGET_COMPANY = WARP SERVER
     QMAKE_TARGET_DESCRIPTION = WARP Cloud Game
     QMAKE_TARGET_PRODUCT = WARP Cloud Game
+
+    # WARP: código C++ com textos em português (acentos e setas) em UTF-8
+    msvc: QMAKE_CXXFLAGS += /utf-8
 
     CONFIG -= embed_manifest_exe
     QMAKE_LFLAGS += /MANIFEST:embed /MANIFESTINPUT:$${PWD}/Moonlight.exe.manifest

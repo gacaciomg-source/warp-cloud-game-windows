@@ -81,6 +81,22 @@ SDL_Surface* OverlayManager::getUpdatedOverlaySurface(OverlayType type)
     return (SDL_Surface*)SDL_AtomicSetPtr((void**)&m_Overlays[type].surface, nullptr);
 }
 
+void OverlayManager::definirImagem(OverlayType type, SDL_Surface* imagem)
+{
+    QReadLocker lock(&m_OverlayRendererLock);
+
+    m_Overlays[type].enabled = true;
+    m_Overlays[type].text[0] = 0;
+
+    SDL_Surface* antiga = (SDL_Surface*)SDL_AtomicSetPtr((void**)&m_Overlays[type].surface, imagem);
+    if (m_Renderer != nullptr) {
+        m_Renderer->notifyOverlayUpdated(type);
+    }
+    if (antiga != nullptr) {
+        SDL_FreeSurface(antiga);
+    }
+}
+
 void OverlayManager::setOverlayTextUpdated(OverlayType type)
 {
     // Only update the overlay state if it's enabled. If it's not enabled,

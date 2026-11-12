@@ -10,6 +10,7 @@
 #include "video/decoder.h"
 #include "audio/renderers/renderer.h"
 #include "video/overlaymanager.h"
+#include "warp/warpmenujogo.h"
 
 class SupportedVideoFormatList : public QList<int>
 {
@@ -94,6 +95,7 @@ class Session : public QObject
     Q_OBJECT
 
     friend class SdlInputHandler;
+    friend class WarpMenuDoJogo;
     friend class DeferredSessionCleanupTask;
     friend class AsyncConnectionStartThread;
 
@@ -281,6 +283,9 @@ private:
     Uint32 m_DropAudioEndTime;
 
     Overlay::OverlayManager m_OverlayManager;
+
+    // WARP: menu da partida (precisa ser destruído antes do m_OverlayManager).
+    WarpMenuDoJogo m_MenuWarp;
 
     static CONNECTION_LISTENER_CALLBACKS k_ConnCallbacks;
     static Session* s_ActiveSession;

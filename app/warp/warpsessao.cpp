@@ -239,7 +239,18 @@ static void aplicarQualidade(StreamingPreferences* p, int tetoKbps)
     // Tela cheia sem borda: o monitor não troca de resolução ao entrar e sair
     // do jogo (sem piscar preto) e o Windows compõe a imagem sem rasgar.
     p->windowMode = StreamingPreferences::WM_FULLSCREEN_DESKTOP;
-    if (s.value("warp/qualidade", "auto").toString() != "auto") return;
+    const QString escolhida = s.value("warp/qualidade", "auto").toString();
+    for (int i = 1; i < QUANTOS_PERFIS_WARP; i++) {
+        if (escolhida == PERFIS_WARP[i].id) {
+            const PerfilWarp& f = PERFIS_WARP[i];
+            p->width = f.altura * 16 / 9;
+            p->height = f.altura;
+            p->fps = 60;
+            p->bitrateKbps = tetoKbps > 0 ? std::min(f.kbps, tetoKbps) : f.kbps;
+            return;
+        }
+    }
+    if (escolhida != "auto") return;
     double mbps = s.value("warp/rede/mbps", 0).toDouble();
     int ping = s.value("warp/rede/ping", 0).toInt();
     int kbps = mbps > 0 ? int(mbps * 700) : 15000;
@@ -308,6 +319,11 @@ void WarpSessao::abrirJogo()
 void WarpSessao::reabrir()
 {
     abrirJogo();
+}
+
+QString WarpSessao::pedidoDoMenu()
+{
+    return WarpMenuDoJogo::consumirPedido();
 }
 
 /* ----------------------------------------------------- sinal e fim */

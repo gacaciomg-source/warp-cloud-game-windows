@@ -157,8 +157,8 @@ Item {
             // in the hintText control itself to synchronize
             // with Session.exec() which requires no concurrent
             // gamepad usage.
-            hintText.text = qsTr("Para sair do jogo: %1   ·   Estatísticas: Ctrl + Alt + Shift + S").arg(SdlGamepadKeyNavigation.getConnectedGamepads() > 0 ?
-                                                  qsTr("Start + Select + LB + RB") : qsTr("Ctrl + Alt + Shift + Q"))
+            hintText.text = qsTr("Menu da partida: %1").arg(SdlGamepadKeyNavigation.getConnectedGamepads() > 0 ?
+                                                  qsTr("Start + Select + LB + RB") : qsTr("Ctrl + Shift + M"))
 
             // Stop GUI gamepad usage now
             SdlGamepadKeyNavigation.disable()

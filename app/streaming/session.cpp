@@ -184,6 +184,11 @@ void Session::clConnectionStatusUpdate(int connectionStatus)
         return;
     }
 
+    if (s_ActiveSession->m_MenuWarp.usaAviso()) {
+        // WARP: o menu da partida (ou a dica do atalho) está usando o aviso
+        return;
+    }
+
     switch (connectionStatus)
     {
     case CONN_STATUS_POOR:
@@ -584,7 +589,8 @@ Session::Session(NvComputer* computer, NvApp& app, StreamingPreferences *prefere
       m_OpusDecoder(nullptr),
       m_AudioRenderer(nullptr),
       m_AudioSampleCount(0),
-      m_DropAudioEndTime(0)
+      m_DropAudioEndTime(0),
+      m_MenuWarp(this)
 {
 }
 
@@ -1561,6 +1567,11 @@ void Session::notifyMouseEmulationMode(bool enabled)
     m_MouseEmulationRefCount += enabled ? 1 : -1;
     SDL_assert(m_MouseEmulationRefCount >= 0);
 
+    // WARP: com o menu da partida aberto, o aviso é dele
+    if (m_MenuWarp.usaAviso()) {
+        return;
+    }
+
     // We re-use the status update overlay for mouse mode notification
     if (m_MouseEmulationRefCount > 0) {
         m_OverlayManager.updateOverlayText(Overlay::OverlayStatusUpdate, "Gamepad mouse mode active\nLong press Start to deactivate");
@@ -1970,6 +1981,9 @@ void Session::exec()
     // Toggle the stats overlay if requested by the user
     m_OverlayManager.setOverlayState(Overlay::OverlayDebug, m_Preferences->showPerformanceOverlay);
 
+    // WARP: dica do atalho do menu nos primeiros segundos
+    m_MenuWarp.mostrarDica();
+
     // Switch to async logging mode when we enter the SDL loop
     StreamUtils::enterAsyncLoggingMode();
 
@@ -2008,6 +2022,11 @@ void Session::exec()
             continue;
         }
 #endif
+        // WARP: com o menu da partida aberto, teclado, mouse e controle são dele.
+        if (m_MenuWarp.tratarEvento(event)) {
+            continue;
+        }
+
         switch (event.type) {
         case SDL_QUIT:
             SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION,
@@ -2243,6 +2262,9 @@ void Session::exec()
                     m_InputHandler->setCaptureActive(true);
                     needsPostDecoderCreationCapture = false;
                 }
+
+                // WARP: a imagem nova não tem o menu desenhado
+                m_MenuWarp.redesenhar();
             }
 
             // Request an IDR frame to complete the reset

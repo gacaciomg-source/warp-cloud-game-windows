@@ -38,6 +38,10 @@ public:
     int getOverlayFontSize(OverlayType type);
     SDL_Surface* getUpdatedOverlaySurface(OverlayType type);
 
+    // WARP: mostra uma imagem já desenhada (ARGB8888) no lugar do texto.
+    // O gerenciador fica com a imagem.
+    void definirImagem(OverlayType type, SDL_Surface* imagem);
+
     void setOverlayRenderer(IOverlayRenderer* renderer);
 
 private:

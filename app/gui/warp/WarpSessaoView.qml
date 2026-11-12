@@ -61,9 +61,22 @@ Item {
         if (!tela.encerrou) sessao.encerrar()
     }
 
-    // Voltou da tela do jogo: partida pausada, máquina reservada.
+    // Voltou da tela do jogo: o menu da partida pode ter pedido qualidade
+    // nova (reconecta na mesma máquina) ou o fim; senão, partida pausada.
     StackView.onActivated: {
         if (tela.jogou && tela.estado === 0) {
+            var pedido = sessao.pedidoDoMenu()
+            if (pedido === "reconectar") {
+                tela.passo = 3
+                tela.titulo = qsTr("Aplicando a nova qualidade…")
+                tela.detalhe = qsTr("Reconectando na mesma máquina, sem fila.")
+                Qt.callLater(function () { sessao.reabrir() })
+                return
+            }
+            if (pedido === "encerrar") {
+                tela.encerrarSessao()
+                return
+            }
             tela.estado = 1
             tela.titulo = qsTr("Partida pausada")
             tela.detalhe = qsTr("O jogo continua aberto na máquina, reservado para você.")

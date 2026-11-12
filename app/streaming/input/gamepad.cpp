@@ -113,6 +113,21 @@ void SdlInputHandler::sendGamepadState(GamepadState* state)
                                rsY);
 }
 
+void SdlInputHandler::zerarControles()
+{
+    for (int i = 0; i < MAX_GAMEPADS; i++) {
+        GamepadState* state = &m_GamepadState[i];
+        if (state->controller == nullptr) {
+            continue;
+        }
+        state->buttons = 0;
+        state->lsX = state->lsY = 0;
+        state->rsX = state->rsY = 0;
+        state->lt = state->rt = 0;
+        sendGamepadState(state);
+    }
+}
+
 void SdlInputHandler::sendGamepadBatteryState(GamepadState* state, SDL_JoystickPowerLevel level)
 {
     uint8_t batteryPercentage;
@@ -385,16 +400,12 @@ void SdlInputHandler::handleControllerButtonEvent(SDL_ControllerButtonEvent* eve
         }
     }
 
-    // Handle Start+Select+L1+R1 as a gamepad quit combo
+    // WARP: Start+Select+L1+R1 abre o menu da partida (no Moonlight, saía do jogo)
     if (state->buttons == (PLAY_FLAG | BACK_FLAG | LB_FLAG | RB_FLAG) && qgetenv("NO_GAMEPAD_QUIT") != "1") {
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION,
-                    "Detected quit gamepad button combo");
+                    "Detected WARP menu gamepad button combo");
 
-        // Push a quit event to the main loop
-        SDL_Event event;
-        event.type = SDL_QUIT;
-        event.quit.timestamp = SDL_GetTicks();
-        SDL_PushEvent(&event);
+        Session::get()->m_MenuWarp.abrir();
 
         // Clear buttons down on this gamepad
         LiSendMultiControllerEvent(state->index, m_GamepadMask,
