@@ -65,13 +65,18 @@ Item {
             if (!inicio.jogos.length) inicio.aviso = mensagem
         }
         function onContaMudou() {
-            if (!WarpApi.logado) stackView.replace(Qt.resolvedUrl("WarpEntrar.qml"))
+            if (!WarpApi.logado) inicio.paraEntrar()
         }
+    }
+
+    // A troca de tela não pode acontecer no meio de outra (o Qt recusa): fica para depois.
+    function paraEntrar() {
+        Qt.callLater(function () { stackView.replace(null, Qt.resolvedUrl("WarpEntrar.qml")) })
     }
 
     StackView.onActivated: {
         if (!WarpApi.logado) {
-            stackView.replace(Qt.resolvedUrl("WarpEntrar.qml"))
+            inicio.paraEntrar()
             return
         }
         WarpApi.carregarJogos()

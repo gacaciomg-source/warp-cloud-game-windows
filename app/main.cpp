@@ -1007,8 +1007,8 @@ int main(int argc, char *argv[])
 
     switch (commandLineParserResult) {
     case GlobalCommandLineParser::NormalStartRequested:
-        // WARP: o app abre na conta e no catálogo da WARP.
-        initialView = "qrc:/gui/warp/WarpInicio.qml";
+        // WARP: o app abre na conta e no catálogo da WARP (entrar, se ainda não logado).
+        initialView = WarpApi::get()->logado() ? "qrc:/gui/warp/WarpInicio.qml" : "qrc:/gui/warp/WarpEntrar.qml";
         break;
     case GlobalCommandLineParser::StreamRequested:
         {

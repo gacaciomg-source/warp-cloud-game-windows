@@ -26,7 +26,7 @@ Item {
         target: WarpApi
         function onEntrou() {
             tela.entrando = false
-            stackView.replace(Qt.resolvedUrl("WarpInicio.qml"))
+            Qt.callLater(function () { stackView.replace(null, Qt.resolvedUrl("WarpInicio.qml")) })
         }
         function onFalhouAoEntrar(mensagem) {
             tela.entrando = false
