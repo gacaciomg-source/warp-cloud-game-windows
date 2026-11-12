@@ -1,5 +1,5 @@
-import QtQuick 2.0
-import QtQuick.Controls 2.2
+import QtQuick 2.15
+import QtQuick.Controls 2.15
 
 // Botão da WARP: principal (verde) ou secundário (vidro escuro), com moldura
 // no foco para teclado e controle. Enter e espaço clicam.

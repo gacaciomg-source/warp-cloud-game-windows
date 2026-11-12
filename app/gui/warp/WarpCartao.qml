@@ -1,4 +1,4 @@
-import QtQuick 2.0
+import QtQuick 2.15
 
 // Capa de um jogo nas fileiras do início. Foco (teclado, controle) aumenta e
 // ganha moldura verde; clique ou Enter abre o jogo.
