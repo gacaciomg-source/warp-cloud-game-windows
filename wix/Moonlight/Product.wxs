@@ -2,20 +2,27 @@
 <?define FullName = "WARP Cloud Game" ?>
 
 <?define ShortcutName = "$(var.ShortName)" ?>
-<?define ShortcutDesc = "Stream games and other applications from another PC" ?>
+<?define ShortcutDesc = "Jogos na nuvem da WARP" ?>
 <?define InstallFolder = "WARP Cloud Game" ?>
 
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs" xmlns:fire="http://wixtoolset.org/schemas/v4/wxs/firewall" xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
 
   <Package Name="$(var.FullName)"
-           Language="1033"
+           Language="1046"
+           Codepage="1252"
            Version="!(bind.fileVersion.MoonlightExe)"
            Manufacturer="WARP SERVER"
            UpgradeCode="0274e554-be21-41a2-8049-3a14a4bbf95d">
-    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." Schedule="afterInstallInitialize" />
+    <MajorUpgrade DowngradeErrorMessage="Uma versão mais nova do [ProductName] já está instalada." Schedule="afterInstallInitialize" />
     <MediaTemplate CompressionLevel="high" EmbedCab="yes" />
 
     <Property Id="APPDATAFOLDER" Value="%LOCALAPPDATA%\WARP SERVER" />
+
+    <!-- WARP: distribuímos o .msi direto (sem o Setup.exe do Moonlight, que é
+         quem passava esta escolha). Sem valor, gravar o estado do atalho no
+         registro falhava com "Could not write value DesktopShortcutInstallState".
+         Padrão: criar o atalho na Área de Trabalho. -->
+    <Property Id="ADDDESKTOPSHORTCUT" Value="1" />
 
     <!-- There's no way to delete a registry key on uninstall but not major upgrade, so
         we have to roll our own deletion via custom action -->
