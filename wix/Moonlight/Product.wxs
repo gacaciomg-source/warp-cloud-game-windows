@@ -13,7 +13,9 @@
            Version="!(bind.fileVersion.MoonlightExe)"
            Manufacturer="WARP SERVER"
            UpgradeCode="0274e554-be21-41a2-8049-3a14a4bbf95d">
-    <MajorUpgrade DowngradeErrorMessage="Uma versão mais nova do [ProductName] já está instalada." Schedule="afterInstallInitialize" />
+    <!-- WARP: as versões de teste saem com o mesmo número; sem AllowSameVersionUpgrades
+         cada instalação ficava ao lado da anterior (várias entradas em Programas). -->
+    <MajorUpgrade DowngradeErrorMessage="Uma versão mais nova do [ProductName] já está instalada." AllowSameVersionUpgrades="yes" Schedule="afterInstallInitialize" />
     <MediaTemplate CompressionLevel="high" EmbedCab="yes" />
 
     <Property Id="APPDATAFOLDER" Value="%LOCALAPPDATA%\WARP SERVER" />
