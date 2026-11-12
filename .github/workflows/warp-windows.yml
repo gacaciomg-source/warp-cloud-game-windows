@@ -1,0 +1,73 @@
+---
+# WARP Cloud Game para Windows: compila só o x64 a cada envio na branch warp.
+# Gera a versão portátil (pasta) e o instalador MSI.
+name: WARP Cloud Game - Windows
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: [warp]
+  workflow_dispatch:
+
+concurrency:
+  group: warp-windows-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows:
+    runs-on: windows-2025
+    env:
+      QT_VERSION: 6.12.0
+    steps:
+      - name: Código
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+          fetch-depth: 1
+
+      - name: Versão
+        shell: bash
+        run: echo "CI_VERSION=$(echo ${GITHUB_SHA} | cut -c1-6)" >> "$GITHUB_ENV"
+
+      - name: Dependências
+        run: powershell ./setup-deps.ps1
+
+      - name: Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          cache: true
+          set-env: false
+          add-tools-to-path: false
+          tools: tools_qtcreator_gui
+          version: ${{ env.QT_VERSION }}
+          aqtsource: git+https://github.com/miurahr/aqtinstall.git@073e34d7c2ab4ae6961ed7cca690b3abd5ba5a7e
+
+      - name: Compila (x64)
+        shell: cmd
+        run: |
+          set "PATH=%QT_PATH%;%PATH%"
+          scripts\build-arch.bat Release x64
+        env:
+          QT_PATH: ${{ runner.workspace }}\Qt\${{ env.QT_VERSION }}\msvc2022_64\bin
+
+      - name: Junta o instalador
+        shell: bash
+        run: |
+          mkdir -p saida
+          cp build/build-x64-release/*.msi saida/ 2>/dev/null || find build -name "*.msi" -exec cp {} saida/ \;
+          ls -la saida
+
+      - name: Envia o instalador
+        uses: actions/upload-artifact@v6
+        with:
+          name: warp-cloud-game-windows-x64-msi
+          path: saida/*.msi
+          if-no-files-found: error
+
+      - name: Envia a versão portátil
+        uses: actions/upload-artifact@v6
+        with:
+          name: warp-cloud-game-windows-x64-portatil
+          path: build/deploy-x64-release/*
+          if-no-files-found: error
