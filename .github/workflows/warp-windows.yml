@@ -56,6 +56,7 @@ jobs:
         run: |
           mkdir -p saida
           cp build/build-x64-release/*.msi saida/ 2>/dev/null || find build -name "*.msi" -exec cp {} saida/ \;
+          mv saida/*.msi saida/WARP-Cloud-Game.msi
           ls -la saida
 
       - name: Envia o instalador
