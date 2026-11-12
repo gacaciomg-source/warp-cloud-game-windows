@@ -4,22 +4,52 @@ import QtQuick.Layouts 1.15
 
 import WarpApi 1.0
 
-// Entrar com a conta da WARP. A sessão fica guardada no computador.
+// Entrar com a conta da WARP, ou criar uma ali mesmo (a mesma conta do site).
+// A sessão fica guardada no computador.
 Item {
     id: tela
     property bool warp: true
     objectName: "WARP Cloud Game"
 
     property bool entrando: false
+    property bool criando: false
 
-    function entrar() {
+    function enviar() {
+        erro.text = ""
+        if (tela.criando) {
+            if (nome.text.trim().length < 2) {
+                erro.text = qsTr("Escreva o seu nome.")
+                return
+            }
+            if (email.text.trim() === "" || senha.text === "") {
+                erro.text = qsTr("Preencha o e-mail e a senha.")
+                return
+            }
+            if (senha.text.length < 10) {
+                erro.text = qsTr("A senha precisa ter pelo menos 10 caracteres.")
+                return
+            }
+            if (!termos.checked) {
+                erro.text = qsTr("Para criar a conta, aceite os termos de uso e a política de privacidade.")
+                return
+            }
+            tela.entrando = true
+            WarpApi.criarConta(nome.text, email.text, senha.text)
+            return
+        }
         if (email.text.trim() === "" || senha.text === "") {
             erro.text = qsTr("Preencha o e-mail e a senha.")
             return
         }
-        erro.text = ""
-        entrando = true
+        tela.entrando = true
         WarpApi.entrar(email.text, senha.text)
+    }
+
+    function trocarModo() {
+        tela.criando = !tela.criando
+        erro.text = ""
+        if (tela.criando) nome.forceActiveFocus()
+        else email.forceActiveFocus()
     }
 
     Connections {
@@ -65,11 +95,18 @@ Item {
         Text {
             Layout.alignment: Qt.AlignHCenter
             Layout.bottomMargin: 18
-            text: qsTr("Entre com a sua conta da WARP para jogar.")
+            text: tela.criando ? qsTr("Crie a sua conta da WARP para jogar.") : qsTr("Entre com a sua conta da WARP para jogar.")
             color: "#6F8BA3"
             font.pixelSize: 14
         }
 
+        TextField {
+            id: nome
+            Layout.fillWidth: true
+            visible: tela.criando
+            placeholderText: qsTr("Seu nome")
+            Keys.onReturnPressed: email.forceActiveFocus()
+        }
         TextField {
             id: email
             Layout.fillWidth: true
@@ -81,9 +118,35 @@ Item {
         TextField {
             id: senha
             Layout.fillWidth: true
-            placeholderText: qsTr("Senha")
+            placeholderText: tela.criando ? qsTr("Senha (pelo menos 10 caracteres)") : qsTr("Senha")
             echoMode: TextInput.Password
-            Keys.onReturnPressed: tela.entrar()
+            Keys.onReturnPressed: tela.enviar()
+        }
+
+        RowLayout {
+            Layout.fillWidth: true
+            visible: tela.criando
+            spacing: 8
+            CheckBox {
+                id: termos
+                Layout.alignment: Qt.AlignTop
+            }
+            Text {
+                Layout.fillWidth: true
+                Layout.alignment: Qt.AlignVCenter
+                textFormat: Text.StyledText
+                text: qsTr("Li e aceito os <a href=\"https://warpserver.com.br/termos\">termos de uso</a> e a <a href=\"https://warpserver.com.br/privacidade\">política de privacidade</a>.")
+                color: "#ADC4D6"
+                linkColor: "#00C48E"
+                font.pixelSize: 13
+                wrapMode: Text.WordWrap
+                onLinkActivated: function (link) { Qt.openUrlExternally(link) }
+                MouseArea {
+                    anchors.fill: parent
+                    acceptedButtons: Qt.NoButton
+                    cursorShape: parent.hoveredLink ? Qt.PointingHandCursor : Qt.ArrowCursor
+                }
+            }
         }
 
         Text {
@@ -100,16 +163,16 @@ Item {
             Layout.topMargin: 6
             principal: true
             enabled: !tela.entrando
-            text: tela.entrando ? qsTr("Entrando…") : qsTr("Entrar")
-            onClicked: tela.entrar()
+            text: tela.entrando ? (tela.criando ? qsTr("Criando a conta…") : qsTr("Entrando…"))
+                                : (tela.criando ? qsTr("Criar conta") : qsTr("Entrar"))
+            onClicked: tela.enviar()
         }
 
-        Text {
-            Layout.alignment: Qt.AlignHCenter
-            Layout.topMargin: 10
-            text: qsTr("Ainda não tem conta? Crie em warpserver.com.br")
-            color: "#6F8BA3"
-            font.pixelSize: 13
+        WarpBotao {
+            Layout.fillWidth: true
+            enabled: !tela.entrando
+            text: tela.criando ? qsTr("Já tenho conta: entrar") : qsTr("Ainda não tem conta? Criar conta")
+            onClicked: tela.trocarModo()
         }
     }
 }

@@ -163,6 +163,26 @@ void WarpApi::entrar(const QString& email, const QString& senha)
     }, false);
 }
 
+void WarpApi::criarConta(const QString& nome, const QString& email, const QString& senha)
+{
+    QJsonObject corpo{{"name", nome.trimmed()}, {"email", email.trimmed()}, {"password", senha}};
+    chamar("POST", "/auth/register", corpo, [=](const Resposta& r) {
+        if (!r.ok) {
+            // O erro de cada campo ("A senha precisa ter...") diz mais que "Dados inválidos."
+            QStringList campos;
+            const QJsonObject f = r.corpo.value("fields").toObject();
+            for (const QString& k : f.keys()) {
+                campos << f.value(k).toString();
+            }
+            emit falhouAoEntrar(campos.isEmpty() ? r.mensagem : campos.join(" "));
+            return;
+        }
+        emit contaMudou();
+        carregarConta();
+        emit entrou();
+    }, false);
+}
+
 void WarpApi::carregarConta()
 {
     if (!logado()) return;

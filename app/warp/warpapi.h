@@ -58,6 +58,8 @@ public:
 
     // Para as telas (QML).
     Q_INVOKABLE void entrar(const QString& email, const QString& senha);
+    // Cadastro pelo próprio app (a mesma rota do site; já volta logado).
+    Q_INVOKABLE void criarConta(const QString& nome, const QString& email, const QString& senha);
     Q_INVOKABLE void carregarConta();
     Q_INVOKABLE void carregarJogos();
     Q_INVOKABLE void sairDaConta();
