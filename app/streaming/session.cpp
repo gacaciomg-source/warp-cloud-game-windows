@@ -1540,8 +1540,14 @@ void Session::toggleFullscreen()
     SDL_UnlockMutex(m_DecoderLock);
 #endif
 
-    // Actually enter/leave fullscreen
+    // Actually enter/leave fullscreen (WARP: redimensionável só em janela, ver exec())
+    if (fullScreen) {
+        SDL_SetWindowResizable(m_Window, SDL_FALSE);
+    }
     SDL_SetWindowFullscreen(m_Window, fullScreen ? m_FullScreenFlag : 0);
+    if (!fullScreen) {
+        SDL_SetWindowResizable(m_Window, SDL_TRUE);
+    }
 
 #ifdef Q_OS_DARWIN
     // SDL on macOS has a bug that causes the window size to be reset to crazy
@@ -1929,6 +1935,9 @@ void Session::exec()
 
     // Enter full screen if requested
     if (m_IsFullScreen) {
+        // WARP: sem a moldura de redimensionar, a tela cheia sem borda do
+        // Windows não mostra a linha clara nas bordas da janela.
+        SDL_SetWindowResizable(m_Window, SDL_FALSE);
         SDL_SetWindowFullscreen(m_Window, m_FullScreenFlag);
     }
 
