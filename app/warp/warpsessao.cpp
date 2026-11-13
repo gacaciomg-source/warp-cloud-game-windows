@@ -134,19 +134,14 @@ NvComputer* WarpSessao::computador() const
     return nullptr;
 }
 
+// Toda sessão nova pareia de novo: no fim de cada sessão a WARP desfaz o
+// pareamento no Sunshine (ninguém fica com acesso direto à máquina), mas o
+// computador guardado aqui ainda "lembra" que estava pareado — confiar nisso
+// fazia o app pular o pareamento e a máquina recusar ("não respondeu").
+// "Voltar ao jogo" (mesma sessão) não passa por aqui.
 void WarpSessao::achouComputador()
 {
-    NvComputer* c = computador();
-    bool pareado;
-    {
-        QReadLocker trava(&c->lock);
-        pareado = c->pairState == NvComputer::PS_PAIRED;
-    }
-    if (pareado) {
-        abrirJogo();
-    } else {
-        parear(1);
-    }
+    parear(1);
 }
 
 /* ------------------------------------------------------ pareamento */
@@ -239,6 +234,9 @@ static void aplicarQualidade(StreamingPreferences* p, int tetoKbps)
     // Tela cheia sem borda: o monitor não troca de resolução ao entrar e sair
     // do jogo (sem piscar preto) e o Windows compõe a imagem sem rasgar.
     p->windowMode = StreamingPreferences::WM_FULLSCREEN_DESKTOP;
+    // Alt+Tab e a tecla Windows ficam no PC do jogador (como em qualquer jogo):
+    // mandados para a máquina, tiravam o jogo da frente e mostravam a Steam.
+    p->captureSysKeysMode = StreamingPreferences::CSK_OFF;
     const QString escolhida = s.value("warp/qualidade", "auto").toString();
     for (int i = 1; i < QUANTOS_PERFIS_WARP; i++) {
         if (escolhida == PERFIS_WARP[i].id) {
