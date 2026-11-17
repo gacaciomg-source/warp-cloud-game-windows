@@ -977,7 +977,7 @@ void Session::emitLaunchWarning(QString text)
 bool Session::validateLaunch(SDL_Window* testWindow)
 {
     if (!m_Computer->isSupportedServerVersion) {
-        emit displayLaunchError(tr("The version of GeForce Experience on %1 is not supported by this build of Moonlight. You must update Moonlight to stream from %1.").arg(m_Computer->name));
+        emit displayLaunchError(tr("A máquina %1 usa uma versão do GeForce Experience que este app não aceita.").arg(m_Computer->name));
         return false;
     }
 
@@ -1908,7 +1908,8 @@ void Session::exec()
 
     m_InputHandler->setWindow(m_Window);
 
-    QSvgRenderer svgIconRenderer(QString(":/res/moonlight.svg"));
+    // Ícone da WARP na janela do jogo (barra de tarefas e Alt+Tab).
+    QSvgRenderer svgIconRenderer(QString(":/res/warp.svg"));
     QImage svgImage(ICON_SIZE, ICON_SIZE, QImage::Format_RGBA8888);
     svgImage.fill(0);
 
