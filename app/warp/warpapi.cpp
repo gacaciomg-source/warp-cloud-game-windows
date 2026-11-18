@@ -19,7 +19,7 @@
 #include <memory>
 
 const QString WarpApi::BASE = QStringLiteral("https://warpserver.com.br");
-const QString WarpApi::VERSAO = QStringLiteral("1.0.5");
+const QString WarpApi::VERSAO = QStringLiteral("1.0.6");
 
 static QString api(const QString& caminho)
 {

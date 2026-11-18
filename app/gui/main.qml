@@ -245,7 +245,9 @@ ApplicationWindow {
 
     header: ToolBar {
         id: toolBar
-        visible: !(stackView.currentItem && stackView.currentItem.warp === true)
+        // A barra antiga do motor só aparece em tela que não é da WARP; no primeiro
+        // instante, antes da tela inicial carregar, não há tela e ela piscava.
+        visible: stackView.currentItem !== null && stackView.currentItem.warp !== true
         height: 60
         anchors.topMargin: 5
         anchors.bottomMargin: 5
