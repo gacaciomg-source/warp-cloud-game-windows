@@ -32,11 +32,16 @@ class WarpApi : public QObject
     Q_PROPERTY(bool logado READ logado NOTIFY contaMudou)
     Q_PROPERTY(QString nome READ nome NOTIFY contaMudou)
     Q_PROPERTY(QString email READ email NOTIFY contaMudou)
+    Q_PROPERTY(QString versao READ versao CONSTANT)
 
 public:
     static WarpApi* get();
 
     static const QString BASE;
+
+    // Versão da WARP deste programa: a mesma publicada no site (app.json). O
+    // número interno do motor (version.txt) não muda e não aparece para ninguém.
+    static const QString VERSAO;
 
     // Resposta de um pedido: ok, status HTTP, corpo em JSON e a mensagem de erro.
     struct Resposta
@@ -55,6 +60,13 @@ public:
     bool logado() const { return m_Cookies->temSessao(); }
     QString nome() const { return m_Nome; }
     QString email() const { return m_Email; }
+    QString versao() const { return VERSAO; }
+
+    // Atualização: confere no site se há versão nova e, se a pessoa aceitar,
+    // baixa o instalador, confere o SHA-256 e instala por cima (o app fecha e
+    // abre de novo sozinho). O portátil só leva para a página de download.
+    Q_INVOKABLE void procurarAtualizacao();
+    Q_INVOKABLE void atualizar();
 
     // Para as telas (QML).
     Q_INVOKABLE void entrar(const QString& email, const QString& senha);
@@ -80,12 +92,18 @@ signals:
     void jogosCarregados(QVariantList jogos);
     void falhaNosJogos(QString mensagem);
     void conexaoTestada(int pingMs, double mbps);
+    void atualizacaoDisponivel(QString versao, double megabytes, bool automatica);
+    void progressoDaAtualizacao(double fracao);
+    void falhaNaAtualizacao(QString mensagem);
 
 private:
     explicit WarpApi(QObject* pai = nullptr);
     void renovar(std::function<void(bool)> retorno);
+    void instalar(const QString& msi);
 
     QNetworkAccessManager m_Rede;
     WarpCookies* m_Cookies;
     QString m_Nome, m_Email;
+    QString m_VersaoNova, m_Sha256Novo;
+    bool m_Baixando = false;
 };

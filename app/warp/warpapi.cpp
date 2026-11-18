@@ -1,18 +1,25 @@
 #include "warpapi.h"
 
+#include <QCoreApplication>
+#include <QCryptographicHash>
 #include <QDateTime>
+#include <QDesktopServices>
+#include <QDir>
 #include <QElapsedTimer>
+#include <QFile>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QNetworkCookie>
 #include <QNetworkReply>
 #include <QNetworkRequest>
+#include <QProcess>
 #include <QSettings>
 
 #include <algorithm>
 #include <memory>
 
 const QString WarpApi::BASE = QStringLiteral("https://warpserver.com.br");
+const QString WarpApi::VERSAO = QStringLiteral("1.0.5");
 
 static QString api(const QString& caminho)
 {
@@ -296,4 +303,121 @@ void WarpApi::testarConexao()
         s.setValue("warp/rede/quando", QDateTime::currentSecsSinceEpoch());
         emit conexaoTestada(ping, mbps);
     });
+}
+
+/* ------------------------------------------------------- atualização */
+
+// "1.0.10" é maior que "1.0.9": compara número por número.
+static bool versaoMaior(const QString& a, const QString& b)
+{
+    const QStringList pa = a.split('.'), pb = b.split('.');
+    for (int i = 0; i < qMax(pa.size(), pb.size()); i++) {
+        int x = i < pa.size() ? pa[i].toInt() : 0;
+        int y = i < pb.size() ? pb[i].toInt() : 0;
+        if (x != y) return x > y;
+    }
+    return false;
+}
+
+// O portátil guarda as configurações ao lado do programa (portable.dat): não
+// foi instalado pelo .msi, então não dá para atualizar instalando por cima.
+static bool modoPortatil()
+{
+    return QFile(QDir::currentPath() + "/portable.dat").exists();
+}
+
+void WarpApi::procurarAtualizacao()
+{
+    chamar("GET", "/cloud-game/app/windows/info", {}, [=](const Resposta& r) {
+        if (!r.ok || !r.corpo.value("disponivel").toBool()) return;
+        const QString versao = r.corpo.value("versao").toString();
+        if (!versaoMaior(versao, VERSAO)) return;
+        m_VersaoNova = versao;
+        m_Sha256Novo = r.corpo.value("sha256").toString().toLower();
+        emit atualizacaoDisponivel(versao, r.corpo.value("tamanho").toDouble() / 1e6, !modoPortatil());
+    }, false);
+}
+
+void WarpApi::atualizar()
+{
+    if (m_VersaoNova.isEmpty() || m_Baixando) return;
+    if (modoPortatil()) {
+        QDesktopServices::openUrl(QUrl(BASE + "/cloud-game"));
+        return;
+    }
+
+    const QString destino = QDir::temp().filePath(QString("WARP-Cloud-Game-%1.msi").arg(m_VersaoNova));
+    auto arquivo = std::make_shared<QFile>(destino);
+    if (!arquivo->open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        emit falhaNaAtualizacao(tr("Não deu para salvar o instalador no computador."));
+        return;
+    }
+    auto hash = std::make_shared<QCryptographicHash>(QCryptographicHash::Sha256);
+    m_Baixando = true;
+
+    QNetworkRequest pedido(QUrl(api("/cloud-game/app/windows")));
+    pedido.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
+    QNetworkReply* r = m_Rede.get(pedido);
+    connect(r, &QNetworkReply::readyRead, this, [=]() {
+        const QByteArray parte = r->readAll();
+        hash->addData(parte);
+        arquivo->write(parte);
+    });
+    connect(r, &QNetworkReply::downloadProgress, this, [=](qint64 recebido, qint64 total) {
+        if (total > 0) emit progressoDaAtualizacao(double(recebido) / total);
+    });
+    connect(r, &QNetworkReply::finished, this, [=]() {
+        r->deleteLater();
+        m_Baixando = false;
+        const QByteArray resto = r->readAll();
+        hash->addData(resto);
+        arquivo->write(resto);
+        arquivo->close();
+        const int status = r->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        if (r->error() != QNetworkReply::NoError || status != 200) {
+            QFile::remove(destino);
+            emit falhaNaAtualizacao(tr("O download parou no meio. Confira a internet e tente de novo."));
+            return;
+        }
+        if (!m_Sha256Novo.isEmpty() && QString::fromLatin1(hash->result().toHex()) != m_Sha256Novo) {
+            QFile::remove(destino);
+            emit falhaNaAtualizacao(tr("O instalador baixado veio diferente do publicado. Tente de novo."));
+            return;
+        }
+        instalar(destino);
+    });
+}
+
+// Roda o instalador e fecha o app (os arquivos dele vão ser trocados). Um
+// script espera o instalador terminar e abre o app de novo, já atualizado. O
+// Windows pede a permissão de administrador, como em qualquer instalação.
+void WarpApi::instalar(const QString& msi)
+{
+    const QString programa = QDir::toNativeSeparators(QCoreApplication::applicationFilePath());
+    const QString script = QDir::temp().filePath("warp-atualizar.cmd");
+    QFile f(script);
+    if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        emit falhaNaAtualizacao(tr("Não deu para preparar a instalação."));
+        return;
+    }
+    const QString nl = QStringLiteral("\r\n");
+    const QString texto = QStringLiteral("@echo off") + nl + QStringLiteral("chcp 65001 >nul") + nl +
+            QString("msiexec /i \"%1\" /passive /norestart").arg(QDir::toNativeSeparators(msi)) + nl +
+            QString("start \"\" \"%1\"").arg(programa) + nl +
+            QString("del \"%1\"").arg(QDir::toNativeSeparators(msi)) + nl;
+    f.write(texto.toUtf8());
+    f.close();
+
+    QProcess p;
+    p.setProgram("cmd.exe");
+    p.setArguments({ "/c", QDir::toNativeSeparators(script) });
+#ifdef Q_OS_WIN32
+    // CREATE_NO_WINDOW: sem a janela preta do cmd.
+    p.setCreateProcessArgumentsModifier([](QProcess::CreateProcessArguments* a) { a->flags |= 0x08000000; });
+#endif
+    if (!p.startDetached()) {
+        emit falhaNaAtualizacao(tr("Não deu para abrir o instalador."));
+        return;
+    }
+    QCoreApplication::quit();
 }

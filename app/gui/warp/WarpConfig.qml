@@ -191,7 +191,10 @@ Item {
             }
             Text {
                 Layout.fillWidth: true
-                text: qsTr("WARP Cloud Game para Windows. O motor de transmissão vem do Moonlight (moonlight-stream.org), software livre sob a licença GPL-3.0. O código-fonte completo, com as mudanças da WARP, é público: github.com/gacaciomg-source/warp-cloud-game-windows")
+                text: qsTr("WARP Cloud Game para Windows, versão %1.").arg(WarpApi.versao) + "
+
+" +
+                      qsTr("Licenças: este programa é software livre (GPL-3.0) e usa o motor de transmissão do projeto Moonlight (moonlight-stream.org). Código-fonte com as mudanças da WARP: github.com/gacaciomg-source/warp-cloud-game-windows")
                 color: "#6F8BA3"; font.pixelSize: 13; wrapMode: Text.WordWrap
             }
         }
